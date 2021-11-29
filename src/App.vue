@@ -5,7 +5,7 @@
 </script>
 
 <template>
-  <h1>Vue 3 + TypeScript + Vite</h1>
+  <router-view/>
 </template>
 
 <style>
