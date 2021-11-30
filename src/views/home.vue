@@ -55,7 +55,6 @@ export default defineComponent({
         price: ''
       })
       const checked = ref('1')
-      const result = ref('')
       const payList = ref([
         { label: '支付宝', value: '1'},
         { label: '微信', value: '2'},
