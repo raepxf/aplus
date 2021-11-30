@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="layout">
      <div class="container">
      <div >
 <van-field v-model="value" label="金额(￥)" readonly clickable @touchstart.stop="show = true" placeholder="0.00"/>
@@ -28,9 +28,20 @@
   is-link
   readonly
   name="picker"
-  label="选择器"
-  placeholder="点击选择城市"
+  label="选择时间"
+  placeholder="点击选择时间"
+  @touchstart.stop="showTimes = true"
 />
+
+<van-action-sheet v-model:show="showTimes" title="标题">
+  <van-datetime-picker
+  v-model="result"
+  type="datetime"
+  title="选择完整时间"
+/>
+</van-action-sheet>
+<van-field v-model="forms.content" label="内容" placeholder="内容"/>
+<van-field v-model="forms.remark" label="备注" placeholder="备注"/>
      </div>
 
         <van-tabbar v-model="active">
@@ -52,10 +63,17 @@ export default defineComponent({
       const value = ref('')
       const currentIndex = ref(1)
       const forms = reactive({
-        price: ''
+       content: "",
+       createTime: "",
+       paymentMethod: 0,
+       price: "",
+       remark: "",
+       typeId: "",
+       typeParentId: "",
       })
       const checked = ref('1')
       const result = ref('')
+      const showTimes = ref(false)
       const payList = ref([
         { label: '支付宝', value: '1'},
         { label: '微信', value: '2'},
@@ -63,14 +81,21 @@ export default defineComponent({
         { label: '现金', value: '4'},
         { label: '地铁卡', value: '5'}
       ])
-    return { active, value, show, forms, currentIndex, checked, payList, result }
+    return { active, value, show, forms, currentIndex, checked, payList, result, showTimes }
     },
 })
 </script>
 
 <style>
+.layout{
+    width:100%;
+  height: 100%;
+}
 .container{
+    width:100%;
+    height: calc(100% - 50px);
 overflow: auto;
+/* display: none; */
 }
 .typeChildren>div{
     border-radius: 50%;
