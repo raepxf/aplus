@@ -13,24 +13,24 @@
         </div>
         <h5>一级类型</h5>
         <van-grid :column-num="5" square :gutter="10">
-  <van-grid-item v-for="value in 6" :key="value" :text="'文字'+value" :class="['typeChildren', value === currentIndex ? 'active': '']"  @touchstart.stop="currentIndex = value" />
+  <van-grid-item v-for="row in typeList" :key="row.typeId" :text="row.typeName" :class="['typeChildren', row.typeId === currentIndex ? 'active': '']"  @touchstart.stop="currentIndex = row.typeId" />
 </van-grid>
  <h5>二级类型</h5>
         <van-grid :column-num="5" square :gutter="10">
-  <van-grid-item v-for="value in 6" :key="value" text="文字" class="typeChildren" />
+  <van-grid-item v-for="row in typeChildrenList" :key="row.value" :text="row.typeName" :class="['typeChildren', row.typeId === currentCIndex ? 'active': '']"  @touchstart.stop="currentCIndex = row.typeId" />
 </van-grid>
 <h5>支付方式</h5>
         <van-grid :column-num="5" square :gutter="10">
-  <van-grid-item v-for="row in payList" :key="row.value" :text="row.label" class="typeChildren" />
+  <van-grid-item v-for="row in payList" :key="row.value" :text="row.label" :class="['typeChildren', row.value === forms.paymentMethod ? 'active': '']"  @touchstart.stop="forms.paymentMethod = row.value" />
 </van-grid>
 <van-field
-  v-model="result"
+  v-model="forms.createTime"
   is-link
   readonly
   name="picker"
   label="选择时间"
   placeholder="点击选择时间"
-  @touchstart.stop="showTimes = true"
+  @click="showTimes = true"
 />
 
 <van-action-sheet v-model:show="showTimes" title="标题">
@@ -38,6 +38,8 @@
   v-model="result"
   type="datetime"
   title="选择完整时间"
+  @confirm="onConfirm"
+  @cancel="showTimes = false"
 />
 </van-action-sheet>
 <van-field v-model="forms.content" label="内容" placeholder="内容"/>
@@ -54,7 +56,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref, watch } from 'vue'
+import axios from 'axios'
 
 export default defineComponent({
     setup() {
@@ -65,23 +68,64 @@ export default defineComponent({
       const forms = reactive({
        content: "",
        createTime: "",
-       paymentMethod: 0,
+       paymentMethod: 1,
        price: "",
        remark: "",
        typeId: "",
        typeParentId: "",
       })
       const checked = ref('1')
-      const result = ref('')
+      const result = ref(new Date)
       const showTimes = ref(false)
+      const currentCIndex = ref(1)
       const payList = ref([
-        { label: '支付宝', value: '1'},
-        { label: '微信', value: '2'},
-        { label: '银行卡', value: '3'},
-        { label: '现金', value: '4'},
-        { label: '地铁卡', value: '5'}
+        { label: '现金', value: 1 },
+        { label: '支付宝', value: 2 },
+        { label: '微信', value: 3 },
+        { label: '银行卡', value: 4 },
+        { label: '地铁卡', value: 5 }
       ])
-    return { active, value, show, forms, currentIndex, checked, payList, result, showTimes }
+      const typeList: any = ref([])
+      const typeChildrenList: any = ref([])
+      const getTimeStr =  (strs: any, type = '-') => {
+    const timeObj = new Date(strs)
+    const yy = timeObj.getFullYear()
+    const mm = timeObj.getMonth() < 9 ? ('0' + (timeObj.getMonth() + 1)) : (timeObj.getMonth() + 1)
+    const dd = timeObj.getDate() > 9 ? timeObj.getDate() : ('0' + timeObj.getDate())
+    const hh = timeObj.getHours() < 10 ? ('0' + timeObj.getHours()) : timeObj.getHours()
+    const min = timeObj.getMinutes() < 10 ? ('0' + timeObj.getMinutes()) : timeObj.getMinutes()
+    const sec = timeObj.getSeconds() < 10 ? ('0' + timeObj.getSeconds()) : timeObj.getSeconds()
+    return `${yy}${type}${mm}${type}${dd} ${hh}:${min}:${sec}`
+  }
+      const onConfirm = (value: any) => {
+        result.value = value
+        forms.createTime = getTimeStr(value)
+        showTimes.value = false
+      }
+      const convertToTreeData = (data: any, pid: string) => {
+      const result = []
+      let temp = []
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].typeParentId === pid) {
+            const obj = data[i]
+            temp = convertToTreeData(data, data[i].typeId)
+            if (temp.length > 0) {
+              obj.children = temp
+            }
+            result.push(obj)
+          }
+      }
+      return result
+    }
+    onMounted(async () => {
+        const res = await axios.get('http://124.71.192.159/api/expenses/getType', {})
+        typeList.value = convertToTreeData(res.data.data, '')
+        currentIndex.value = typeList.value[0].typeId
+    })
+    watch(currentIndex, (val) => {
+      typeChildrenList.value = typeList.value.filter((r:any) => r.typeId === val)[0].children
+    })
+    return { active, value, show, forms, currentIndex, checked, payList, result, showTimes, typeList, typeChildrenList, currentCIndex, onConfirm }
     },
 })
 </script>
