@@ -55,6 +55,7 @@ export default defineComponent({
         price: ''
       })
       const checked = ref('1')
+      const result = ref('')
       const payList = ref([
         { label: '支付宝', value: '1'},
         { label: '微信', value: '2'},
@@ -62,7 +63,7 @@ export default defineComponent({
         { label: '现金', value: '4'},
         { label: '地铁卡', value: '5'}
       ])
-    return { active, value, show, forms, currentIndex, checked, payList }
+    return { active, value, show, forms, currentIndex, checked, payList, result }
     },
 })
 </script>
